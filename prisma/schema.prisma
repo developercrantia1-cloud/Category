@@ -1,0 +1,82 @@
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  status   Boolean   @default(true)
+
+  parentId Int?
+  parent   Category? @relation("CategoryToSub", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryToSub")
+
+  @@map("categories")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  email       String    @unique
+  age         Int
+  isActive    Boolean   @default(true)
+
+  createdCars CarInfo[] @relation("CarsCreatedBy")
+  updatedCars CarInfo[] @relation("CarsUpdatedBy")
+
+  rooms       Room[]    @relation("UserRooms")
+  messages    Message[]
+
+  @@map("users")
+}
+
+model CarInfo {
+  id              Int     @id @default(autoincrement())
+  carname         String
+  mileage         Int
+  yearmodal       Int
+  price           Int
+  isActive        Boolean @default(true)
+  imagePath       String?
+  createdByUserId Int?
+  updatedByUserId Int?
+  createdBy       User?   @relation("CarsCreatedBy", fields: [createdByUserId], references: [id])
+  updatedBy       User?   @relation("CarsUpdatedBy", fields: [updatedByUserId], references: [id])
+
+  @@map("cars")
+}
+
+model Room {
+  id        Int      @id @default(autoincrement())
+  name      String?
+
+  users     User[]   @relation("UserRooms")
+  messages  Message[]
+
+  createdAt DateTime @default(now())
+
+  @@map("rooms")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+
+  message   String
+
+  senderId  Int
+  sender    User     @relation(fields: [senderId], references: [id])
+
+  roomId    Int
+  room      Room     @relation(fields: [roomId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([roomId])
+  @@index([senderId])
+
+  @@map("messages")
+}
